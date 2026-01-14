@@ -1,28 +1,29 @@
-# Python
+# --- Python / venv ---
+.venv/
 __pycache__/
 *.py[cod]
+*.pyo
+
+# --- pytest ---
 .pytest_cache/
-.coverage*
-htmlcov/
 
-# Virtualenv
-.venv/
-venv/
-ENV/
-
-# Build artifacts
+# --- packaging/build artifacts ---
 build/
 dist/
 *.egg-info/
+.eggs/
 
-# IDE / OS
-.vscode/
-.idea/
+# --- local outputs/artifacts ---
+artifacts/
+policies/
+
+# --- patch artifacts (keep patches/ archive) ---
+*.patch
+!patches/
+!patches/**/*.patch
+
+# --- OS/editor ---
 .DS_Store
 Thumbs.db
-
-# Runtime artifacts (recommended)
-artifacts/
-policies/current.yaml
-policies/history.log
-policies/releases/
+.vscode/
+.idea/
