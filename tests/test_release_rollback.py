@@ -1,8 +1,14 @@
 from pathlib import Path
 import yaml
 
-from src.cli import cmd_release, cmd_rollback, cmd_status, CURRENT_FILE, RELEASES_DIR
-from src.loader import load_policy
+from strategy_validator.cli import (
+    cmd_release,
+    cmd_rollback,
+    cmd_status,
+    CURRENT_FILE,
+    RELEASES_DIR,
+)
+from strategy_validator.loader import load_policy
 
 
 def write_policy(tmp: Path, version: str) -> Path:

@@ -1,4 +1,4 @@
-from src.diff import diff_policies
+from strategy_validator.diff import diff_policies
 
 
 def test_risk_score_increases():

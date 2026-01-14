@@ -1,5 +1,5 @@
-from src.loader import load_policy
-from src.validator import validate_report
+from strategy_validator.loader import load_policy
+from strategy_validator.validator import validate_report
 
 
 def test_report_ok_has_version():

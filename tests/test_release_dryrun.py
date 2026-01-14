@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.cli import cmd_release
+from strategy_validator.cli import cmd_release
 from tests.helpers import write_policy
 
 

@@ -1,6 +1,6 @@
 import pytest
-from src.loader import load_policy
-from src.validator import validate, ValidationError
+from strategy_validator.loader import load_policy
+from strategy_validator.validator import validate, ValidationError
 
 
 def test_policy_valid():

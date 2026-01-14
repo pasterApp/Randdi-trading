@@ -1,4 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "strategy-validator"
-version = "0.1.0"
-dependencies = ["pyyaml", "pytest"]
+version = "0.1.1"
+description = "Strategy policy validator"
+requires-python = ">=3.12"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9.0.0"]
+
+[project.scripts]
+policyv = "strategy_validator.cli:main_entry"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.cli import _emit_json
+from strategy_validator.cli import _emit_json
 
 
 def test_emit_json_writes_file(tmp_path):

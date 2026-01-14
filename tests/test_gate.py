@@ -1,5 +1,5 @@
 # tests/test_gate.py
-from src.gate import apply_gate
+from strategy_validator.gate import apply_gate
 
 
 def test_soft_mode_allows_low_warn():
