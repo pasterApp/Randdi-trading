@@ -81,8 +81,13 @@ def cmd_validate(policy_path: str, json_out: bool, out_path: str | None) -> int:
 
 
 def cmd_release(
-    policy_path: str, strict: bool, json_out: bool, out_path: str | None
+    policy_path: str,
+    strict: bool,
+    json_out: bool,
+    out_path: str | None,
+    dry_run: bool = False,  # ✅ 추가
 ) -> int:
+
     _ensure_dirs()
 
     policy = load_policy(policy_path)
@@ -102,16 +107,40 @@ def cmd_release(
         print("RELEASE BLOCKED: strict mode and validator warnings present")
         return 2
 
+    from src.gate import apply_gate
+
     # 2) Diff & Risk Summary (항상 실행: 이후 모든 차단/성공에서 rep_with_diff 사용)
+    prev = None
+
+    # 2) Diff & Gate (항상 실행: 이후 모든 차단/성공에서 rep_with_diff 사용)
     prev = None
     if Path(CURRENT_FILE).exists():
         prev = load_policy(CURRENT_FILE)
 
     diff = diff_policies(prev, policy)
 
+    policy_gate = (policy.get("release") or {}).get("gate")
+    gate_result = apply_gate(diff, policy_gate)
+
+    # report에 diff/gate 결과 포함
     rep_with_diff = dict(rep)
     rep_with_diff["diff"] = diff
-    rep["report_schema"] = "1.0"
+    rep_with_diff["gate"] = gate_result
+
+    # Gate 차단
+    if not gate_result["allowed"]:
+        _emit_json(rep_with_diff, json_out=json_out, out_path=out_path)
+        print("RELEASE BLOCKED BY GATE")
+        for r in gate_result["reasons"]:
+            print(f"  - {r}")
+        return 2
+
+    # --- Dry-run: 여기서 중단 (쓰기 없음)
+    if dry_run:
+        rep_with_diff["dry_run"] = True
+        _emit_json(rep_with_diff, json_out=json_out, out_path=out_path)
+        print("DRY-RUN OK: no files were written")
+        return 0
 
     # 요약 출력(텍스트)
     if diff["added"] or diff["removed"] or diff["changed"]:
@@ -163,6 +192,14 @@ def cmd_release(
     # 6) 파일 복사(릴리즈 확정)
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(policy_path, dest_file)
+    # ✅ releases/<ver>/report.json (항상 저장: 릴리즈 아카이빙 증빙)
+    import json
+
+    report_file = dest_dir / "report.json"
+    report_file.write_text(
+        json.dumps(rep_with_diff, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
     Path(POLICIES_DIR).mkdir(parents=True, exist_ok=True)
     shutil.copy2(dest_file, Path(CURRENT_FILE))
@@ -173,8 +210,8 @@ def cmd_release(
 
     print(f"RELEASED: {version}")
     # --- 버전별 report.json 저장
-    version_report = dest_dir / "report.json"
-    version_report.write_text(
+    report_file = dest_dir / "report.json"
+    report_file.write_text(
         json.dumps(rep_with_diff, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
@@ -340,6 +377,9 @@ def main() -> int:
     r.add_argument(
         "--out", default=None, help="Write JSON report (with diff) to a file"
     )
+    r.add_argument(
+        "--dry-run", action="store_true", help="simulate release without writing files"
+    )
 
     rb = sub.add_parser(
         "rollback", help="Rollback current.yaml to previous or target version"
@@ -358,14 +398,21 @@ def main() -> int:
         return cmd_validate(args.policy, args.json, args.out)
 
     if args.cmd == "release":
-        return cmd_release(args.policy, args.strict, args.json, args.out)
+        return cmd_release(
+            policy_path=args.policy,
+            strict=args.strict,
+            json_out=args.json,
+            out_path=args.out,
+            dry_run=args.dry_run,
+        )
 
     if args.cmd == "rollback":
         return cmd_rollback(args.to)
+
     if args.cmd == "status":
         return cmd_status()
 
-    return 1
+    return 2
 
 
 if __name__ == "__main__":

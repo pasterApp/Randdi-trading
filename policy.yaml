@@ -1,5 +1,5 @@
 meta:
-  policy_version: "0.1.0"
+  policy_version: "0.1.1"
   author: "user"
   market: "KRX"
   timezone: "Asia/Seoul"
@@ -48,3 +48,13 @@ exit:
 failsafe:
   on_data_disconnect: "halt_trading"
   on_api_error: "close_positions"
+
+release:
+  gate:
+    mode: "soft"          # soft | hard
+    warn_score_block: 30  # soft 모드에서 WARN 점수 임계
+    error_block: true     # ERROR flag 있으면 즉시 차단
+    weights:
+      WARN: 10
+      ERROR: 100
+
