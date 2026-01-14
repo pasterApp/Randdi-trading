@@ -1,0 +1,50 @@
+meta:
+  policy_version: "0.1.0"
+  author: "user"
+  market: "KRX"
+  timezone: "Asia/Seoul"
+
+inputs:
+  data:
+    source: "broker_api"
+    timeframe:
+      primary: "5m"
+      confirm: "20m"
+  indicators:
+    - name: "ema"
+      params: { period: 20 }
+    - name: "ema"
+      params: { period: 60 }
+
+entry:
+  trigger:
+    description: "5m EMA20 crosses above EMA60 with 20m uptrend confirmed"
+    checklist:
+      - "5m ema20 > ema60"
+      - "20m ema20 > ema60"
+  invalidation:
+    description: "cross-back within 3 bars"
+
+risk:
+  per_trade_loss_pct: 2.0
+  daily_loss_limit_pct: 4.0
+  position_sizing: "fixed_fraction"
+
+execution:
+  order_type: "market"
+  min_liquidity:
+    avg_daily_value: 5000000000
+  costs:
+    fee_pct: 0.03
+    slippage_pct: 0.05
+
+exit:
+  stop_loss_pct: 2.0
+  take_profit:
+    type: "trailing"
+    trail_pct: 1.2
+  time_stop_bars: 30
+
+failsafe:
+  on_data_disconnect: "halt_trading"
+  on_api_error: "close_positions"
