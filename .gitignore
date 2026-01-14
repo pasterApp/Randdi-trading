@@ -1,24 +1,17 @@
-# Python caches
+# venv
+.venv/
+
+# python cache
 __pycache__/
 *.pyc
-*.pyo
+
+# pytest
 .pytest_cache/
-.coverage
-htmlcov/
 
-# Virtual environments
-.venv/
-venv/
-
-# IDE/OS
-.vscode/
-.DS_Store
-Thumbs.db
-
-# Runtime outputs
+# local outputs
 artifacts/
 
-# Local state files
+# policy runtime outputs (release artifacts)
+policies/releases/
 policies/current.yaml
 policies/history.log
-
