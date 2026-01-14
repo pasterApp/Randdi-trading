@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  test:
+  test-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,8 +28,20 @@ jobs:
       - name: Run tests
         run: python -m pytest -q
 
-      - name: CLI smoke test
+      - name: CLI smoke test (editable)
         run: |
           policyv --help
           policyv validate --policy policy.yaml --json
           policyv release --policy policy.yaml --dry-run --json
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+          ls -la dist
+
+      - name: Install wheel and smoke test (wheel)
+        run: |
+          python -m pip uninstall -y strategy-validator || true
+          python -m pip install dist/*.whl
+          policyv --help
