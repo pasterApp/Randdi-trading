@@ -8,10 +8,15 @@ def test_release_writes_version_report(tmp_path, monkeypatch):
 
     p = write_policy(tmp_path, "0.9.9")
     rc = cmd_release(
-        str(p), strict=False, json_out=False, out_path="artifacts/last.json"
+        str(p),
+        strict=False,
+        json_out=False,
+        out_path="artifacts/last.json",
+        dry_run=False,
     )
     assert rc == 0
 
     report = Path("policies/releases/0.9.9/report.json")
     assert report.exists()
-    assert "risk_score" in report.read_text(encoding="utf-8")
+    txt = report.read_text(encoding="utf-8")
+    assert '"risk_score"' in txt
