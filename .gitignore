@@ -1,17 +1,28 @@
-# venv
-.venv/
-
-# python cache
+# Python
 __pycache__/
-*.pyc
-
-# pytest
+*.py[cod]
 .pytest_cache/
+.coverage*
+htmlcov/
 
-# local outputs
+# Virtualenv
+.venv/
+venv/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime artifacts (recommended)
 artifacts/
-
-# policy runtime outputs (release artifacts)
-policies/releases/
 policies/current.yaml
 policies/history.log
+policies/releases/

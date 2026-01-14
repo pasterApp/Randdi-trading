@@ -1,0 +1,81 @@
+name: Release (tag -> build -> upload dist)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project (dev) + test
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pytest -vv
+
+      - name: Verify tag version matches pyproject.toml
+        shell: bash
+        run: |
+          python - << 'PY'
+          import os, re, sys
+          try:
+            import tomllib  # py3.11+
+          except Exception:
+            print("ERROR: tomllib not available")
+            sys.exit(2)
+
+          tag = os.environ.get("GITHUB_REF_NAME", "")
+          m = re.match(r"^v(\d+\.\d+\.\d+)$", tag)
+          if not m:
+            print(f"ERROR: tag must be vX.Y.Z, got: {tag}")
+            sys.exit(2)
+          tag_ver = m.group(1)
+
+          with open("pyproject.toml", "rb") as f:
+            data = tomllib.load(f)
+          proj_ver = data.get("project", {}).get("version")
+          if not proj_ver:
+            print("ERROR: project.version missing in pyproject.toml")
+            sys.exit(2)
+
+          if proj_ver != tag_ver:
+            print(f"ERROR: version mismatch: tag={tag_ver} vs pyproject={proj_ver}")
+            sys.exit(2)
+
+          print(f"OK: version match: {tag_ver}")
+          PY
+
+      - name: Build (sdist + wheel)
+        run: |
+          python -m pip install build
+          python -m build
+          ls -la dist
+
+      - name: Smoke test wheel (install + CLI help)
+        shell: bash
+        run: |
+          python -m pip uninstall -y strategy-validator || true
+          python -m pip install dist/*.whl
+          policyv --help
+
+      - name: Upload dist to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+          generate_release_notes: true
